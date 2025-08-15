@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jogo da Memória com Animais</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    text-align: center;
+    margin: 20px;
+  }
+
+  h1 {
+    margin-bottom: 10px;
+  }
+
+  #nome-container {
+    margin-bottom: 20px;
+  }
+
+  #nome {
+    padding: 8px 12px;
+    font-size: 16px;
+    width: 250px;
+  }
+
+  #jogo {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-gap: 15px;
+    justify-content: center;
+  }
+
+  .carta {
+    width: 100px;
+    height: 100px;
+    background-color: #ffffff;
+    border: 2px solid #333;
+    border-radius: 8px;
+    font-size: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  .carta:hover {
+    background-color: #e0e0e0;
+  }
+
+  #mensagem {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+  }
+
+  #reiniciar {
+    margin-top: 15px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  #reiniciar:hover {
+    background-color: #45a049;
+  }
+</style>
+</head>
+<body>
+
+<h1>Jogo da Memória com Animais</h1>
+
+<div id="nome-container">
+  <label for="nome">Seu nome: </label>
+  <input type="text" id="nome" placeholder="Marsuely" />
+</div>
+
+<div id="jogo"></div>
+
+<div id="mensagem"></div>
+
+<button id="reiniciar">Reiniciar Jogo</button>
+
+<script>
+  const animais = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊'];
+  let cartas = [];
+  let primeiraCarta = null;
+  let segundaCarta = null;
+  let bloqueado = false;
+  let paresEncontrados = 0;
+
+  const jogoContainer = document.getElementById('jogo');
+  const mensagem = document.getElementById('mensagem');
+  const reiniciarBtn = document.getElementById('reiniciar');
+  const nomeInput = document.getElementById('nome');
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function inicializarJogo() {
+    paresEncontrados = 0;
+    mensagem.textContent = '';
+    primeiraCarta = null;
+    segundaCarta = null;
+    bloqueado = false;
+
+    // Duplicar emojis para formar pares e embaralhar
+    const cartasAnimais = [...animais, ...animais];
+    shuffle(cartasAnimais);
+
+    // Limpar o container
+    jogoContainer.innerHTML = '';
+
+    // Criar as cartas
+    cartasAnimais.forEach((animal, index) => {
+      const carta = document.createElement('div');
+      carta.className = 'carta';
+      carta.dataset.animals = animal;
+      carta.dataset.index = index;
+      carta.textContent = '';
+      carta.addEventListener('click', viradaCarta);
+      jogoContainer.appendChild(carta);
+    });
+  }
+
+  function viradaCarta(e) {
+    if (bloqueado) return;
+
+    const carta = e.currentTarget;
+
+    // Se já estiver virada ou já combinada, ignore
+    if (carta.textContent !== '') return;
+
+    // Mostrar animal
+    carta.textContent = carta.dataset.animals;
+
+    if (!primeiraCarta) {
+      primeiraCarta = carta;
+    } else if (primeiraCarta && !segundaCarta && carta !== primeiraCarta) {
+      segundaCarta = carta;
+      verificarPar();
+    }
+  }
+
+  function verificarPar() {
+    if (primeiraCarta.dataset.animals === segundaCarta.dataset.animals) {
+      // Par encontrado
+      paresEncontrados++;
+      mensagem.textContent = `Par encontrado! Total: ${paresEncontrados}`;
+      primeiraCarta = null;
+      segundaCarta = null;
+
+      if (paresEncontrados === animais.length) {
+        const nomeJogador = nomeInput.value.trim() || 'Jogador';
+        mensagem.textContent = `Parabéns, ${nomeJogador}! Você ganhou!`;
+      }
+    } else {
+      // Não é par, esconder após delay
+      bloqueado = true;
+      setTimeout(() => {
+        primeiraCarta.textContent = '';
+        segundaCarta.textContent = '';
+        primeiraCarta = null;
+        segundaCarta = null;
+        bloqueado = false;
+      }, 1000);
+    }
+  }
+
+  document.getElementById('reiniciar').addEventListener('click', inicializarJogo);
+
+  // Iniciar o jogo ao carregar a página
+  window.onload = () => {
+    inicializarJogo();
+  };
+</script>
+
+</body>
+</html>
